@@ -24,7 +24,7 @@ optional arguments:
   -d DOWNLOAD_PATH  Cloudmusic download path (default: [auto-generated])
   -e EXPORT_PATH    generated .m3u8 file export path (default: [auto-generated])
   -r                specify to remove base path and use relative posix path
-  -b BASE_PATH      specify base path to be removed with -r (default to export_path)
+  -b BASE_PATH      specify base path to be removed with -r (default to EXPORT_PATH)
 ```
 
 ## Example
@@ -35,7 +35,7 @@ python netease-cloudmusic-library-to-m3u8.py
 
 - export only specific playlists to designated location with custom Cloudmusic download path, with songs of posix style relative path
 ```bat
-python netease-cloudmusic-library-to-m3u8.py -p 我喜欢的音乐 -p 'L - 5s' -d D:\Users\Mark\Music\Cloudmusic -e D:\Users\Mark\Music\Playlists\ -r
+python netease-cloudmusic-library-to-m3u8.py -p 我喜欢的音乐 -p "L - 5s" -d D:\Users\Mark\Music\Cloudmusic -e D:\Users\Mark\Music\Playlists\ -r
 ```
 
 - show help
