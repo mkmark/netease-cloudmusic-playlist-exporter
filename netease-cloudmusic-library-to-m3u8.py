@@ -39,14 +39,6 @@ def get_playlistsd(webdb_dat_path):
             playlistsd[pid]['tids'].append(tid)
     con.close();   
     return playlistsd
-
-def get_all_pids(playlistsd):
-    return [pid for pid in playlistsd]
-
-def get_pid_of_playlist_name(playlist_name, playlistsd):
-    for pid in playlistsd:
-        if playlistsd[pid]['playlist_name'] == playlist_name:
-            return pid
         
 def get_track_infod(webdb_dat_path, library_dat_path, download_path):
     """
@@ -117,7 +109,15 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path):
     return track_infod
     
 def get_pids_of_playlist_names(playlist_names, playlistsd):
-    if playlist_names == None:
+    def get_all_pids(playlistsd):
+        return [pid for pid in playlistsd]
+
+    def get_pid_of_playlist_name(playlist_name, playlistsd):
+        for pid in playlistsd:
+            if playlistsd[pid]['playlist_name'] == playlist_name:
+                return pid
+
+    if playlist_names == []:
         pids = get_all_pids(playlistsd)
     else:
         pids = [get_pid_of_playlist_name(playlist_name, playlistsd) for playlist_name in playlist_names]
@@ -150,8 +150,26 @@ def get_m3u8d(pids, playlistsd, track_infod):
                     m3u8d[pid]['tracks'][tid] = track_infod[tid]
     return m3u8d
 
-def make_string_windows_compatible(_str):
-    return re.sub(r'[\\\/\:\*\?\"\<\>\|]', '_', _str)
+def export(m3u8d, export_path):
+    def make_string_windows_compatible(_str):
+        return re.sub(r'[\\\/\:\*\?\"\<\>\|]', '_', _str)
+        # https://en.wikipedia.org/wiki/M3U
+
+    for pid in m3u8d:
+        playlist_name = make_string_windows_compatible(m3u8d[pid]['playlist_name'])
+        file_name = playlist_name + '.m3u8'
+        file_path = export_path + file_name
+        with open(file_path, 'w', encoding='utf-8', errors='ignore') as m3u8_file:
+            m3u8_file_content = '#EXTM3U\n'
+            for tid in m3u8d[pid]['tracks']:
+                m3u8_file_content = m3u8_file_content + '#EXTINF:' + \
+                                    m3u8d[pid]['tracks'][tid]['duration'] + ', ' + \
+                                    m3u8d[pid]['tracks'][tid]['artists_name'] + ' - ' + \
+                                    m3u8d[pid]['tracks'][tid]['track_name'] + '\n' + \
+                                    m3u8d[pid]['tracks'][tid]['path'] + '\n'
+            m3u8_file.write(m3u8_file_content)
+    print("Files saved at " + export_path)
+
 
 def main():
     # see if is wsl or windows
@@ -161,8 +179,8 @@ def main():
         default_library_path = '/mnt/c/Users/' + windows_username + '/AppData/Local/Netease/CloudMusic/Library/'
         default_download_path = "C:\\Users\\" + windows_username + "\\Music\\CloudMusic\\"
         default_export_path = '/mnt/c/Users/' + windows_username + '/Music/Playlists/'
-    # os.name == 'nt'
     else:
+    # os.name == 'nt'
         #windows_username = os.environ['USERNAME']
         default_library_path = os.path.expanduser('~') + "\\AppData\\Local\\Netease\CloudMusic\\Library\\"
         default_download_path = os.path.expanduser('~') + "\\Music\\CloudMusic\\"
@@ -187,7 +205,6 @@ def main():
                               required = False)
     args = parser.parse_args()
     playlist_names = args.p
-    library_dat_path = args.l
     download_path = args.d
     export_path = args.e
 
@@ -203,27 +220,18 @@ def main():
         return
 
     # process
+    # get all playlists
     playlistsd = get_playlistsd(webdb_dat_path)
+    # get all tracks
     track_infod = get_track_infod(webdb_dat_path, library_dat_path, download_path)
+    # get desired playlist pids
     pids = get_pids_of_playlist_names(playlist_names, playlistsd)
+    print(pids)
+    # assemble m3u8 dict
     m3u8d = get_m3u8d(pids, playlistsd, track_infod)
 
     # export
-    # https://en.wikipedia.org/wiki/M3U
-    for pid in m3u8d:
-        playlist_name = make_string_windows_compatible(m3u8d[pid]['playlist_name'])
-        file_name = playlist_name + '.m3u8'
-        file_path = export_path + file_name
-        with open(file_path, 'w', encoding='utf-8', errors='ignore') as m3u8_file:
-            m3u8_file_content = '#EXTM3U\n'
-            for tid in m3u8d[pid]['tracks']:
-                m3u8_file_content = m3u8_file_content + '#EXTINF:' + \
-                                    m3u8d[pid]['tracks'][tid]['duration'] + ', ' + \
-                                    m3u8d[pid]['tracks'][tid]['artists_name'] + ' - ' + \
-                                    m3u8d[pid]['tracks'][tid]['track_name'] + '\n' + \
-                                    m3u8d[pid]['tracks'][tid]['path'] + '\n'
-            m3u8_file.write(m3u8_file_content)
-    print("Files saved at " + export_path)
+    export(m3u8d, export_path)
 
 if __name__ == '__main__':
     main()
