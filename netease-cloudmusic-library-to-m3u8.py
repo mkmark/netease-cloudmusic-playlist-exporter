@@ -116,6 +116,8 @@ def get_pids_of_playlist_names(playlist_names, playlistsd):
         for pid in playlistsd:
             if playlistsd[pid]['playlist_name'] == playlist_name:
                 return pid
+        print(playlist_name + "not found")
+        exit()
 
     if playlist_names == []:
         pids = get_all_pids(playlistsd)
@@ -170,8 +172,27 @@ def export(m3u8d, export_path):
             m3u8_file.write(m3u8_file_content)
     print("Files saved at " + export_path)
 
+def get_relative_path(m3u8d, base_path):
+    def replace_ignore_case(old, new, text):
+        idx = 0
+        while idx < len(text):
+            index_l = text.lower().find(old.lower(), idx)
+            if index_l == -1:
+                return text
+            text = text[:index_l] + new + text[index_l + len(old):]
+            idx = index_l + len(new) 
+        return text
+
+    for pid in m3u8d:
+        for tid in m3u8d[pid]['tracks']:
+            # remove base path
+            m3u8d[pid]['tracks'][tid]['path'] = replace_ignore_case(base_path, "", m3u8d[pid]['tracks'][tid]['path'])
+            # nt to posix path
+            m3u8d[pid]['tracks'][tid]['path'] = m3u8d[pid]['tracks'][tid]['path'].replace("\\", "/")
+    return m3u8d
 
 def main():
+    # set default values
     # see if is wsl or windows
     # os.name == 'posix'
     if os.name == 'posix':
@@ -191,7 +212,7 @@ def main():
     This script creates .m3u8 playlists from Netease Cloudmusic webdb.dat.
     """)
     parser.add_argument("-p", default = [], \
-                              help = "playlist name, leave blank to export all, can be specified multiple times or as an array (default: [])", \
+                              help = "playlist name, leave blank to export all, can be specified multiple times (default: [])", \
                               action = 'append', \
                               required = False)
     parser.add_argument("-l", default = default_library_path, \
@@ -203,10 +224,22 @@ def main():
     parser.add_argument("-e", default = default_export_path, \
                               help = "generated .m3u8 file export path (default: " + default_export_path + ")", \
                               required = False)
+    parser.add_argument("-r", default = False, \
+                              help = "specify to remove base path and use relative posix path: ", \
+                              action='store_const', \
+                              const = True, \
+                              required = False)
+    parser.add_argument("-b", help = "specify base path to be removed with -r (default to export_path)", \
+                              required = False)
     args = parser.parse_args()
     playlist_names = args.p
     download_path = args.d
     export_path = args.e
+    use_relative_path = args.r
+    if args.b == None:
+        base_path = args.e
+    else:
+        base_path = args.b
 
     library_dat_path = args.l + 'library.dat'
     webdb_dat_path = args.l + 'webdb.dat'
@@ -226,10 +259,11 @@ def main():
     track_infod = get_track_infod(webdb_dat_path, library_dat_path, download_path)
     # get desired playlist pids
     pids = get_pids_of_playlist_names(playlist_names, playlistsd)
-    print(pids)
     # assemble m3u8 dict
     m3u8d = get_m3u8d(pids, playlistsd, track_infod)
-
+    # get m3u8 with relative path 
+    if use_relative_path: 
+        m3u8d = get_relative_path(m3u8d, base_path)
     # export
     export(m3u8d, export_path)
 
