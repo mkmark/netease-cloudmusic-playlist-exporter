@@ -48,7 +48,7 @@ def get_pid_of_playlist_name(playlist_name, playlistsd):
         if playlistsd[pid]['playlist_name'] == playlist_name:
             return pid
         
-def get_track_infod(webdb_dat_path, download_path):
+def get_track_infod(webdb_dat_path, library_dat_path, download_path):
     """
     Returns 
     track_info[tid] = {
@@ -58,10 +58,31 @@ def get_track_infod(webdb_dat_path, download_path):
         'duration': duration
     }
     """
+    track_infod = {}
+    # first get track, note these information may be incorrect due to duplication and out of date
+    con = sqlite3.connect(library_dat_path)
+    cur = con.cursor()
+    library_dat_track = cur.execute(
+        'SELECT file, tid, title, artist, duration \
+         FROM track'
+    )
+    for file, tid, title, artist, duration in library_dat_track:
+        if file == '' or tid == '':
+            continue
+        else:
+            tid = int(tid)
+            track_infod[tid] = {}
+            track_infod[tid]['path'] = file
+            track_infod[tid]['track_name'] = title
+            if len(artist.split(",")) > 1:
+                track_infod[tid]['artists_name'] = artist.split(",")[1]
+            track_infod[tid]['duration'] = str(round(duration/1000))
+    con.close();
+
+    # then get web_offline_track
     con = sqlite3.connect(webdb_dat_path)
     cur = con.cursor()
-    track_infod = {}
-    # get web_offline_track first
+    
     web_offline_track = cur.execute(
         'SELECT track_id, detail, track_name, artist_name, relative_path \
          FROM web_offline_track'
@@ -88,9 +109,11 @@ def get_track_infod(webdb_dat_path, download_path):
             track_infod[tid] = {}
             track_infod[tid]['path'] = file
             track_infod[tid]['track_name'] = name
-            track_infod[tid]['artists_name'] = artist.split(",")[1]
+            if len(artist.split(",")) > 1:
+                track_infod[tid]['artists_name'] = artist.split(",")[1]
             track_infod[tid]['duration'] = str(round(json.loads(track)['duration']/1000))
-    con.close();        
+    con.close();
+
     return track_infod
     
 def get_pids_of_playlist_names(playlist_names, playlistsd):
@@ -124,10 +147,7 @@ def get_m3u8d(pids, playlistsd, track_infod):
                 m3u8d[pid]['tracks'][tid] = {}
                 path = track_infod[tid]['path']
                 if path != None:
-                    m3u8d[pid]['tracks'][tid]['path'] = path
-                    m3u8d[pid]['tracks'][tid]['track_name'] = track_infod[tid]['track_name']
-                    m3u8d[pid]['tracks'][tid]['artists_name'] = track_infod[tid]['artists_name']
-                    m3u8d[pid]['tracks'][tid]['duration'] = track_infod[tid]['duration']
+                    m3u8d[pid]['tracks'][tid] = track_infod[tid]
     return m3u8d
 
 def make_string_windows_compatible(_str):
@@ -135,14 +155,16 @@ def make_string_windows_compatible(_str):
 
 def main():
     # see if is wsl or windows
+    # os.name == 'posix'
     if os.name == 'posix':
         windows_username = subprocess.getoutput('cmd.exe /c echo $USER').title()
-        default_webdb_dat_path = '/mnt/c/Users/' + windows_username + '/AppData/Local/Netease/CloudMusic/Library/webdb.dat'
+        default_library_path = '/mnt/c/Users/' + windows_username + '/AppData/Local/Netease/CloudMusic/Library/'
         default_download_path = "C:\\Users\\" + windows_username + "\\Music\\CloudMusic\\"
         default_export_path = '/mnt/c/Users/' + windows_username + '/Music/Playlists/'
-    if os.name == 'nt':
+    # os.name == 'nt'
+    else:
         #windows_username = os.environ['USERNAME']
-        default_webdb_dat_path = os.path.expanduser('~') + "\\AppData\\Local\\Netease\CloudMusic\\Library\\webdb.dat"
+        default_library_path = os.path.expanduser('~') + "\\AppData\\Local\\Netease\CloudMusic\\Library\\"
         default_download_path = os.path.expanduser('~') + "\\Music\\CloudMusic\\"
         default_export_path = os.path.expanduser('~') + "\\Music\\Playlists\\"
 
@@ -154,8 +176,8 @@ def main():
                               help = "playlist name, leave blank to export all, can be specified multiple times or as an array (default: [])", \
                               action = 'append', \
                               required = False)
-    parser.add_argument("-w", default = default_webdb_dat_path, \
-                              help = "webdb.dat path (default: " + default_webdb_dat_path + ")", \
+    parser.add_argument("-l", default = default_library_path, \
+                              help = "webdb.dat and library.dat directory (default: " + default_library_path + ")", \
                               required = False)
     parser.add_argument("-d", default = default_download_path, \
                               help = "Cloudmusic download path (default: " + default_download_path + ")", \
@@ -165,9 +187,12 @@ def main():
                               required = False)
     args = parser.parse_args()
     playlist_names = args.p
-    webdb_dat_path = args.w
+    library_dat_path = args.l
     download_path = args.d
     export_path = args.e
+
+    library_dat_path = args.l + 'library.dat'
+    webdb_dat_path = args.l + 'webdb.dat'
 
     if not os.path.exists(webdb_dat_path):
         print(webdb_dat_path + " doesn't exist. Type -h for help.")
@@ -179,7 +204,7 @@ def main():
 
     # process
     playlistsd = get_playlistsd(webdb_dat_path)
-    track_infod = get_track_infod(webdb_dat_path, download_path)
+    track_infod = get_track_infod(webdb_dat_path, library_dat_path, download_path)
     pids = get_pids_of_playlist_names(playlist_names, playlistsd)
     m3u8d = get_m3u8d(pids, playlistsd, track_infod)
 

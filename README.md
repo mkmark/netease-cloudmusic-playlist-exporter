@@ -10,19 +10,16 @@ command line tool to export netease cloudmusic playlists to standard .m3u8
 ```bash
 python netease-cloudmusic-library-to-m3u8.py -h
 
-usage: netease-cloudmusic-library-to-m3u8.py [-h] [-p P] [-w W] [-d D] [-e E]
+usage: netease-cloudmusic-library-to-m3u8.py [-h] [-p P] [-l L] [-d D] [-e E]
 
 This script creates .m3u8 playlists from Netease Cloudmusic webdb.dat.
 
 optional arguments:
   -h, --help  show this help message and exit
-  -p P        playlist name, leave blank to export all, can be specified
-              multiple times or as an array (default: [])
-  -w W        webdb.dat path (default: [auto-generated])
-  -d D        Cloudmusic download path (default:
-              [auto-generated])
-  -e E        generated .m3u8 file export path (default:
-              [auto-generated])
+  -p P        playlist name, leave blank to export all, can be specified multiple times or as an array (default: [])
+  -l L        webdb.dat and library.dat directory (default: [auto-generated])
+  -d D        Cloudmusic download path (default: [auto-generated])
+  -e E        generated .m3u8 file export path (default: [auto-generated])
 ```
 
 ## Example
