@@ -212,37 +212,42 @@ def main():
     This script creates .m3u8 playlists from Netease Cloudmusic webdb.dat.
     """)
     parser.add_argument("-p", default = [], \
+                              dest = "PLAYLIST", \
                               help = "playlist name, leave blank to export all, can be specified multiple times (default: [])", \
                               action = 'append', \
                               required = False)
     parser.add_argument("-l", default = default_library_path, \
+                              dest = "LIB_PATH", \
                               help = "webdb.dat and library.dat directory (default: " + default_library_path + ")", \
                               required = False)
     parser.add_argument("-d", default = default_download_path, \
+                              dest = "DOWNLOAD_PATH", \
                               help = "Cloudmusic download path (default: " + default_download_path + ")", \
                               required = False)
     parser.add_argument("-e", default = default_export_path, \
+                              dest = "EXPORT_PATH", \
                               help = "generated .m3u8 file export path (default: " + default_export_path + ")", \
                               required = False)
     parser.add_argument("-r", default = False, \
-                              help = "specify to remove base path and use relative posix path: ", \
+                              help = "specify to remove base path and use relative posix path", \
                               action='store_const', \
                               const = True, \
                               required = False)
     parser.add_argument("-b", help = "specify base path to be removed with -r (default to export_path)", \
+                              dest = "BASE_PATH", \
                               required = False)
     args = parser.parse_args()
-    playlist_names = args.p
-    download_path = args.d
-    export_path = args.e
+    playlist_names = args.PLAYLIST
+    download_path = args.DOWNLOAD_PATH
+    export_path = args.EXPORT_PATH
     use_relative_path = args.r
     if args.b == None:
-        base_path = args.e
+        base_path = args.EXPORT_PATH
     else:
-        base_path = args.b
+        base_path = args.BASE_PATH
 
-    library_dat_path = args.l + 'library.dat'
-    webdb_dat_path = args.l + 'webdb.dat'
+    library_dat_path = args.libpath + 'library.dat'
+    webdb_dat_path = args.libpath + 'webdb.dat'
 
     if not os.path.exists(webdb_dat_path):
         print(webdb_dat_path + " doesn't exist. Type -h for help.")

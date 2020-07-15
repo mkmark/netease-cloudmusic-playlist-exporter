@@ -15,11 +15,14 @@ usage: netease-cloudmusic-library-to-m3u8.py [-h] [-p P] [-l L] [-d D] [-e E]
 This script creates .m3u8 playlists from Netease Cloudmusic webdb.dat.
 
 optional arguments:
-  -h, --help  show this help message and exit
-  -p P        playlist name, leave blank to export all, can be specified multiple times or as an array (default: [])
-  -l L        webdb.dat and library.dat directory (default: [auto-generated])
-  -d D        Cloudmusic download path (default: [auto-generated])
-  -e E        generated .m3u8 file export path (default: [auto-generated])
+optional arguments:
+  -h, --help        show this help message and exit
+  -p PLAYLIST       playlist name, leave blank to export all, can be specified multiple times (default: [])
+  -l LIB_PATH       webdb.dat and library.dat directory (default: [auto-generated])
+  -d DOWNLOAD_PATH  Cloudmusic download path (default: [auto-generated])
+  -e EXPORT_PATH    generated .m3u8 file export path (default: [auto-generated])
+  -r                specify to remove base path and use relative posix path
+  -b BASE_PATH      specify base path to be removed with -r (default to export_path)
 ```
 
 ## Example
