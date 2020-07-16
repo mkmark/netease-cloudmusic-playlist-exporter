@@ -2,10 +2,10 @@
 command line tool to export netease cloudmusic playlists to standard .m3u8
 
 ## Features
-- Standard .m3u8 with full features
-- Support WIndows and WSL python
+- Standard .m3u8 with full features according to wikipedia
+- Support Windows and WSL python
 - Support all cloud music and local music, as long as it can be accessed offline
-- For songs support nt style absolute path and posix style relative path
+- Support nt style absolute path and posix style relative path in .m3u8
 
 ## Usage
 ```bash
@@ -35,7 +35,7 @@ python netease-cloudmusic-library-to-m3u8.py
 
 - export only specific playlists to designated location with custom Cloudmusic download path, with songs of posix style relative path
 ```bat
-python netease-cloudmusic-library-to-m3u8.py -p 我喜欢的音乐 -p "L - 5s" -d D:\Users\Mark\Music\Cloudmusic -e D:\Users\Mark\Music\Playlists\ -r
+python netease-cloudmusic-library-to-m3u8.py -p 我喜欢的音乐 -p "L - 5s" -d D:\Users\Mark\Music\Cloudmusic -e D:\Users\Mark\Music\ -r
 ```
 
 - show help
