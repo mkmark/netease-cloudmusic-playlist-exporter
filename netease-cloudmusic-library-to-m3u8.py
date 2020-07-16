@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import subprocess
 import json
@@ -154,9 +156,18 @@ def get_m3u8d(pids, playlistsd, track_infod):
 
 def export(m3u8d, export_path):
     def make_string_windows_compatible(_str):
-        return re.sub(r'[\\\/\:\*\?\"\<\>\|]', '_', _str)
-        # https://en.wikipedia.org/wiki/M3U
-
+        _str = re.sub(r'[\/]', '／', _str)
+        _str = re.sub(r'[\\]', '＼', _str)
+        _str = re.sub(r'[\"]', '＂', _str)
+        _str = re.sub(r'[\:]', '：', _str)
+        _str = re.sub(r'[\*]', '＊', _str)
+        _str = re.sub(r'[\?]', '？', _str)
+        _str = re.sub(r'[\<]', '《', _str)
+        _str = re.sub(r'[\>]', '》', _str)
+        _str = re.sub(r'[\|]', '｜', _str)
+        return _str
+    
+    # https://en.wikipedia.org/wiki/M3U
     for pid in m3u8d:
         playlist_name = make_string_windows_compatible(m3u8d[pid]['playlist_name'])
         file_name = playlist_name + '.m3u8'
@@ -199,13 +210,13 @@ def main():
         windows_username = subprocess.getoutput('cmd.exe /c echo $USER').title()
         default_library_path = '/mnt/c/Users/' + windows_username + '/AppData/Local/Netease/CloudMusic/Library/'
         default_download_path = "C:\\Users\\" + windows_username + "\\Music\\CloudMusic\\"
-        default_export_path = '/mnt/c/Users/' + windows_username + '/Music/Playlists/'
+        default_export_path = '/mnt/c/Users/' + windows_username + '/Music/'
     else:
     # os.name == 'nt'
         #windows_username = os.environ['USERNAME']
         default_library_path = os.path.expanduser('~') + "\\AppData\\Local\\Netease\CloudMusic\\Library\\"
         default_download_path = os.path.expanduser('~') + "\\Music\\CloudMusic\\"
-        default_export_path = os.path.expanduser('~') + "\\Music\\Playlists\\"
+        default_export_path = os.path.expanduser('~') + "\\Music\\"
 
     # parse args
     parser = argparse.ArgumentParser(description="""
@@ -229,25 +240,26 @@ def main():
                               help = "generated .m3u8 file export path (default: " + default_export_path + ")", \
                               required = False)
     parser.add_argument("-r", default = False, \
+                              dest = "USE_RELATIVE_PATH", \
                               help = "specify to remove base path and use relative posix path", \
                               action='store_const', \
                               const = True, \
                               required = False)
-    parser.add_argument("-b", help = "specify base path to be removed with -r (default to export_path)", \
+    parser.add_argument("-b", help = "specify base path to be removed with -r (default to EXPORT_PATH)", \
                               dest = "BASE_PATH", \
                               required = False)
     args = parser.parse_args()
     playlist_names = args.PLAYLIST
     download_path = args.DOWNLOAD_PATH
     export_path = args.EXPORT_PATH
-    use_relative_path = args.r
-    if args.b == None:
+    use_relative_path = args.USE_RELATIVE_PATH
+    if args.BASE_PATH == None:
         base_path = args.EXPORT_PATH
     else:
         base_path = args.BASE_PATH
 
-    library_dat_path = args.libpath + 'library.dat'
-    webdb_dat_path = args.libpath + 'webdb.dat'
+    library_dat_path = args.LIB_PATH + 'library.dat'
+    webdb_dat_path = args.LIB_PATH + 'webdb.dat'
 
     if not os.path.exists(webdb_dat_path):
         print(webdb_dat_path + " doesn't exist. Type -h for help.")

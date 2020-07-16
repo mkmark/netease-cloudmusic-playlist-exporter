@@ -17,7 +17,6 @@ usage: netease-cloudmusic-library-to-m3u8.py [-h] [-p PLAYLIST] [-l LIB_PATH] [-
 This script creates .m3u8 playlists from Netease Cloudmusic webdb.dat.
 
 optional arguments:
-optional arguments:
   -h, --help        show this help message and exit
   -p PLAYLIST       playlist name, leave blank to export all, can be specified multiple times (default: [])
   -l LIB_PATH       webdb.dat and library.dat directory (default: [auto-generated])
