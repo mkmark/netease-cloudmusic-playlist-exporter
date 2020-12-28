@@ -114,10 +114,13 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path):
     return track_infod
     
 def get_pids_of_playlist_names(playlist_names, playlistsd):
-    def get_all_pids(playlistsd):
-        return [pid for pid in playlistsd]
+    def get_all_non_empty_pids(playlistsd):
+        pids = []
+        for pid in playlistsd:
+            if (playlistsd[pid]['track_count'] != 0):
+                pids.append(pid)
 
-    def get_pid_of_playlist_name(playlist_name, playlistsd):
+    def get_non_empty_pid_of_playlist_name(playlist_name, playlistsd):
         for pid in playlistsd:
             if (playlistsd[pid]['playlist_name'] == playlist_name) & (playlistsd[pid]['track_count'] != 0):
                 return pid
@@ -125,9 +128,9 @@ def get_pids_of_playlist_names(playlist_names, playlistsd):
         exit()
 
     if playlist_names == []:
-        pids = get_all_pids(playlistsd)
+        pids = get_all_non_empty_pids(playlistsd)
     else:
-        pids = [get_pid_of_playlist_name(playlist_name, playlistsd) for playlist_name in playlist_names]
+        pids = [get_non_empty_pid_of_playlist_name(playlist_name, playlistsd) for playlist_name in playlist_names]
     return pids
         
 def get_m3u8d(pids, playlistsd, track_infod):
