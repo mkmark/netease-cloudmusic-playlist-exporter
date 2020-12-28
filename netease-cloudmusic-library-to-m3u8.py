@@ -12,6 +12,7 @@ def get_playlistsd(webdb_dat_path):
     Returns
     playlistsd[pid] = {
         'playlist_name': playlist_name,
+        "track_count": track_count,
         'tids': list()
     }
     """
@@ -26,8 +27,10 @@ def get_playlistsd(webdb_dat_path):
     for pid, playlist_info in web_playlist:
         playlist_infod = json.loads(playlist_info)
         playlist_name = playlist_infod['name']
+        track_count = playlist_infod['trackCount']
         playlistsd[pid] = {
             'playlist_name': playlist_name,
+            "track_count": track_count,
             'tids': list()
         }
     # get tids of pid
@@ -116,7 +119,7 @@ def get_pids_of_playlist_names(playlist_names, playlistsd):
 
     def get_pid_of_playlist_name(playlist_name, playlistsd):
         for pid in playlistsd:
-            if playlistsd[pid]['playlist_name'] == playlist_name:
+            if (playlistsd[pid]['playlist_name'] == playlist_name) & (playlistsd[pid]['track_count'] != 0):
                 return pid
         print(playlist_name + "not found")
         exit()
