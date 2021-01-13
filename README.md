@@ -1,6 +1,8 @@
-# netease-cloudmusic-library-to-m3u8
+# netease-cloudmusic-playlist-exporter
 
 command line tool to export netease cloudmusic playlists to standard .m3u8
+
+网易云音乐歌单导出工具，导出歌单为标准.m3u8格式
 
 ## Features
 
