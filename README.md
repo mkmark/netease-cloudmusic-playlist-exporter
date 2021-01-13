@@ -1,20 +1,29 @@
 # netease-cloudmusic-library-to-m3u8
+
 command line tool to export netease cloudmusic playlists to standard .m3u8
 
 ## Features
+
 - Standard .m3u8 with full features according to wikipedia
-- Support Windows and WSL python
+- Support Windows, require python or WSL python
 - Support all cloud music and local music, as long as it can be accessed offline
 - Support nt style absolute path and posix style relative path in .m3u8
 
-## Usage
+## Install
+
 ```bash
-python netease-cloudmusic-library-to-m3u8.py -h
+pip install git+https://github.com/mkmark/netease-cloudmusic-playlist-exporter.git
+```
 
-usage: netease-cloudmusic-library-to-m3u8.py [-h] [-p PLAYLIST] [-l LIB_PATH] [-d DOWNLOAD_PATH] [-e EXPORT_PATH] [-r]
-                                             [-b BASE_PATH]
+## Usage
 
-This script creates .m3u8 playlists from Netease Cloudmusic webdb.dat.
+```bash
+ncmplex -h
+
+usage: ncmplex [-h] [-p PLAYLIST] [-l LIB_PATH] [-d DOWNLOAD_PATH] [-e EXPORT_PATH] [-r]
+               [-b BASE_PATH]
+
+This tool creates .m3u8 playlists from Netease Cloudmusic webdb.dat.
 
 optional arguments:
   -h, --help        show this help message and exit
@@ -27,21 +36,26 @@ optional arguments:
 ```
 
 ## Example
+
 - export all playlists using default settings.
+
 ```bat
-python netease-cloudmusic-library-to-m3u8.py
+ncmplex
 ```
 
 - export only specific playlists to designated location with custom Cloudmusic download path, with songs of posix style relative path
+
 ```bat
-python netease-cloudmusic-library-to-m3u8.py -p 我喜欢的音乐 -p "L - 5s" -d D:\Users\Mark\Music\Cloudmusic -e D:\Users\Mark\Music\ -r
+ncmplex -p 我喜欢的音乐 -p "L - 5s" -d D:\Users\Mark\Music\Cloudmusic -e D:\Users\Mark\Music\ -r
 ```
 
 - show help
+
 ```bat
-python netease-cloudmusic-library-to-m3u8.py -h
+ncmplex -h
 ```
 
 ## Reference
+
 - [mkmark / create_m3u_from_NeteaseCloudMusic](https://github.com/mkmark/create_m3u_from_NeteaseCloudMusic)
 - [M3U - Wikipedia](https://en.wikipedia.org/wiki/M3U)
