@@ -2,6 +2,7 @@
 import json
 import sqlite3
 import re
+import glob
 
 def get_playlistsd(webdb_dat_path):
     """
@@ -108,6 +109,19 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path):
     con.close();
 
     return track_infod
+
+def get_correct_case_track_infod(track_infod):
+    def get_correct_case_path(path):
+        try:
+            r = glob.glob(re.sub(r'([^:/\\])(?=[/\\]|$)|\[', r'[\g<0>]', path))
+        except:
+            r = ""
+        return r and r[0] or path
+
+    for tid in track_infod.keys():
+        track_infod[tid]['path'] = get_correct_case_path(track_infod[tid]['path'])
+    return(track_infod)
+    
     
 def get_pids_of_playlist_names(playlist_names, playlistsd):
     def get_all_non_empty_pids(playlistsd):

@@ -35,6 +35,7 @@ optional arguments:
   -e EXPORT_PATH    generated .m3u8 file export path (default: [auto-generated])
   -r                specify to remove base path and use relative posix path
   -b BASE_PATH      specify base path to be removed with -r (default to EXPORT_PATH)
+  -c                specify to fix path case error
 ```
 
 ## Example
@@ -45,10 +46,10 @@ optional arguments:
 ncmplex
 ```
 
-- export only specific playlists to designated location with custom Cloudmusic download path, with songs of posix style relative path
+- export only specific playlists to designated location with custom CloudMusic download path, with songs of posix style relative path and try to fix path case
 
 ```bat
-ncmplex -p 我喜欢的音乐 -p "L - 5s" -d D:\Users\Mark\Music\Cloudmusic -e D:\Users\Mark\Music\ -r
+ncmplex -p 我喜欢的音乐 -p "L - 5s" -d D:\Users\Mark\Music\CloudMusic -e D:\Users\Mark\Music\ -r -c
 ```
 
 - show help

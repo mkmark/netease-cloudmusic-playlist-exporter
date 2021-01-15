@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'ncmplex',
-    version = '1.0.0',
+    version = '1.0.1',
     description = 'command line tool to export netease cloudmusic playlists to standard .m3u8',
     url = 'https://github.com/mkmark/netease-cloudmusic-playlist-exporter',
     author = 'mkmark',

@@ -53,6 +53,12 @@ parser.add_argument("-r", default = False, \
 parser.add_argument("-b", help = "specify base path to be removed with -r (default to EXPORT_PATH)", \
                           dest = "BASE_PATH", \
                           required = False)
+parser.add_argument("-c", default = False, \
+                          dest = "FIX_CASE", \
+                          help = "specify to fix path case error", \
+                          action='store_const', \
+                          const = True, \
+                          required = False)
 
 def main():
     args = parser.parse_args()
@@ -60,6 +66,7 @@ def main():
     download_path = args.DOWNLOAD_PATH
     export_path = args.EXPORT_PATH
     use_relative_path = args.USE_RELATIVE_PATH
+    fix_case = args.FIX_CASE
     if args.BASE_PATH == None:
         base_path = args.EXPORT_PATH
     else:
@@ -81,6 +88,9 @@ def main():
     playlistsd = get_playlistsd(webdb_dat_path)
     # get all tracks
     track_infod = get_track_infod(webdb_dat_path, library_dat_path, download_path)
+    # fix case
+    if fix_case: 
+        track_infod = get_correct_case_track_infod(track_infod)
     # get desired playlist pids
     pids = get_pids_of_playlist_names(playlist_names, playlistsd)
     # assemble m3u8 dict
