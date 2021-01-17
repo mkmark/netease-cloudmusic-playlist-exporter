@@ -38,6 +38,12 @@ optional arguments:
   -c                specify to fix path case error
 ```
 
+Note:
+
+- `-d DOWNLOAD_PATH` is required because `web_offline_track` stored in `webdb.dat` is stored with `relative_path` only, and there is no extra information in the database to determine the base path. If not provided, `%USERPROFILE%\Music\CloudMusic\` is used.
+- `-r` option is useful to export music to posix system like Mac, Linux, Android and so.
+- `-c` option is useful to export music to be used in case-sensitive operation system like Linux and so. Path stored in the database may be in the incorrect case, which is not a problem in Windows or Mac. With `-c` enabled, the app will verify the file name on the disk, thus dramatically increase the processing time.
+
 ## Example
 
 - export all playlists using default settings.
