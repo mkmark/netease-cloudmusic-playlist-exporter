@@ -2,6 +2,7 @@
 import os
 import subprocess
 import argparse
+import logging
 
 if __package__ is None:
     from core import *
@@ -46,16 +47,27 @@ parser.add_argument("-e", default = default_export_path, \
                           required = False)
 parser.add_argument("-r", default = False, \
                           dest = "USE_RELATIVE_PATH", \
-                          help = "specify to remove base path and use relative posix path", \
+                          help = "remove base path and use relative posix path", \
                           action='store_const', \
                           const = True, \
                           required = False)
-parser.add_argument("-b", help = "specify base path to be removed with -r (default to EXPORT_PATH)", \
+parser.add_argument("-b", help = "bsse path to be removed with -r (default to EXPORT_PATH)", \
                           dest = "BASE_PATH", \
                           required = False)
 parser.add_argument("-c", default = False, \
                           dest = "FIX_CASE", \
-                          help = "specify to fix path case error", \
+                          help = "try to fix path case error", \
+                          action='store_const', \
+                          const = True, \
+                          required = False)
+parser.add_argument("-f", default = [], \
+                          dest = "ADDITIONAL_PATH_FORMATS", \
+                          help = "try to export tracks that are not found in ncm database, can be specified multiple times. (default: [])", \
+                          action = 'append', \
+                          required = False)                   
+parser.add_argument("-v", default = False, \
+                          dest = "VERBOSE", \
+                          help = "print verbose log", \
                           action='store_const', \
                           const = True, \
                           required = False)
@@ -67,6 +79,8 @@ def main():
     export_path = args.EXPORT_PATH
     use_relative_path = args.USE_RELATIVE_PATH
     fix_case = args.FIX_CASE
+    verbose = args.VERBOSE
+    additional_path_formats = args.ADDITIONAL_PATH_FORMATS
     if args.BASE_PATH == None:
         base_path = args.EXPORT_PATH
     else:
@@ -84,10 +98,16 @@ def main():
         return
 
     # process
+    # logger
+    if verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+    else:
+        logging.getLogger().setLevel(logging.INFO)
+
     # get all playlists
     playlistsd = get_playlistsd(webdb_dat_path)
     # get all tracks
-    track_infod = get_track_infod(webdb_dat_path, library_dat_path, download_path)
+    track_infod = get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_path_formats)
     # fix case
     if fix_case: 
         track_infod = get_correct_case_track_infod(track_infod)

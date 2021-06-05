@@ -28,14 +28,17 @@ usage: ncmplex [-h] [-p PLAYLIST] [-l LIB_PATH] [-d DOWNLOAD_PATH] [-e EXPORT_PA
 This tool creates .m3u8 playlists from Netease Cloudmusic webdb.dat.
 
 optional arguments:
-  -h, --help        show this help message and exit
-  -p PLAYLIST       playlist name, leave blank to export all, can be specified multiple times (default: [])
-  -l LIB_PATH       webdb.dat and library.dat directory (default: [auto-generated])
-  -d DOWNLOAD_PATH  Cloudmusic download path (default: [auto-generated])
-  -e EXPORT_PATH    generated .m3u8 file export path (default: [auto-generated])
-  -r                specify to remove base path and use relative posix path
-  -b BASE_PATH      specify base path to be removed with -r (default to EXPORT_PATH)
-  -c                specify to fix path case error
+  -h, --help            show this help message and exit
+  -p PLAYLIST           playlist name, leave blank to export all, can be specified multiple times (default: [])
+  -l LIB_PATH           webdb.dat and library.dat directory (default: [auto-generated])
+  -d DOWNLOAD_PATH      Cloudmusic download path (default: [auto-generated])
+  -e EXPORT_PATH        generated .m3u8 file export path (default: [auto-generated])
+  -r                    remove base path and use relative posix path
+  -b BASE_PATH          bsse path to be removed with -r (default to EXPORT_PATH)
+  -c                    try to fix path case error
+  -f ADDITIONAL_PATH_FORMATS
+                        try to export tracks that are not found in ncm database, can be specified multiple times. (default: [])
+  -v                    print verbose log
 ```
 
 Note:
@@ -43,6 +46,7 @@ Note:
 - `-d DOWNLOAD_PATH` is required because `web_offline_track` stored in `webdb.dat` is stored with `relative_path` only, and there is no extra information in the database to determine the base path. If not provided, `%USERPROFILE%\Music\CloudMusic\` is used.
 - `-r` option is useful to export music to posix system like Mac, Linux, Android and so.
 - `-c` option is useful to export music to be used in case-sensitive operation system like Linux and so. Path stored in the database may be in the incorrect case, which is not a problem in Windows or Mac. With `-c` enabled, the app will verify the file name on the disk, thus dramatically increase the processing time.
+- `-f` option is useful to export music that is not included in ncm database, but exists on disk, in format that can be specified by {{title}}, {{album}}, {{artists}}. Use first entry found. 
 
 ## Example
 
@@ -52,10 +56,10 @@ Note:
 ncmplex
 ```
 
-- export only specific playlists to designated location with custom CloudMusic download path, with songs of posix style relative path and try to fix path case
+- export only specific playlists to designated location with custom CloudMusic download path, with songs of posix style relative path and try to fix path case, with additional path that prioritize `.flac` file.
 
 ```bat
-ncmplex -p 我喜欢的音乐 -p "L - 5s" -d D:\Users\Mark\Music\CloudMusic -e D:\Users\Mark\Music\ -r -c
+ncmplex -p 我喜欢的音乐 -p "L - 5s" -d D:\Users\Mark\Music\CloudMusic -e D:\Users\Mark\Music\ -r -c -f D:\Users\Mark\Music\Additional\{{artists}}\{{album}}\{{title}}.flac -f D:\Users\Mark\Music\Additional\{{artists}}\{{album}}\{{title}}.mp3
 ```
 
 - show help
