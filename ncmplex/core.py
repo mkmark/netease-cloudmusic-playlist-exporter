@@ -90,7 +90,6 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_
         'SELECT track_id, detail, track_name, artist_name, relative_path \
          FROM web_offline_track'
     )
-    web_offline_track_info_by_tid = {}
     for tid, detail, track_name, artists_name, relative_path in web_offline_track:
         album_name = json.loads(detail)["album"]["name"]
         track_infod[tid] = {}
@@ -242,11 +241,11 @@ def get_m3u8d(pids, playlistsd, track_infod):
                     artists_name = 'NULL'
                     album_name = 'NULL'
                     track_name = 'NULL'
-                    if artists_name in track_infod[tid]:
+                    if 'artists_name' in track_infod[tid]:
                         artists_name = track_infod[tid]['artists_name']
-                    if album_name in track_infod[tid]:
+                    if 'album_name' in track_infod[tid]:
                         album_name = track_infod[tid]['album_name']
-                    if track_name in track_infod[tid]:
+                    if 'track_name' in track_infod[tid]:
                         track_name = track_infod[tid]['track_name']
                     logging.warning("track not found: %s", artists_name + ' - ' + album_name + ' - ' + track_name)
             else:
@@ -267,10 +266,9 @@ def export(m3u8d, export_path):
                 if 'path' in m3u8d[pid]['tracks'][tid]:
                     artists_name = 'NULL'
                     album_name = 'NULL'
-                    track_name = 'NULL'
-                    if artists_name in m3u8d[pid]['tracks'][tid]:
+                    if 'artists_name' in m3u8d[pid]['tracks'][tid]:
                         artists_name = m3u8d[pid]['tracks'][tid]['artists_name']
-                    if album_name in m3u8d[pid]['tracks'][tid]:
+                    if 'album_name' in m3u8d[pid]['tracks'][tid]:
                         album_name = m3u8d[pid]['tracks'][tid]['album_name']
                     m3u8_file_content = m3u8_file_content + '#EXTINF:' + \
                                         m3u8d[pid]['tracks'][tid]['duration'] + ', ' + \
