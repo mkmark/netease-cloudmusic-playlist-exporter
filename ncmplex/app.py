@@ -67,7 +67,13 @@ parser.add_argument("-f", default = [], \
                           required = False)                   
 parser.add_argument("-v", default = False, \
                           dest = "VERBOSE", \
-                          help = "print verbose log", \
+                          help = "print info log", \
+                          action='store_const', \
+                          const = True, \
+                          required = False)
+parser.add_argument("-vv", default = False, \
+                          dest = "VERBOSE2", \
+                          help = "print debug log", \
                           action='store_const', \
                           const = True, \
                           required = False)
@@ -80,6 +86,7 @@ def main():
     use_relative_path = args.USE_RELATIVE_PATH
     fix_case = args.FIX_CASE
     verbose = args.VERBOSE
+    verbose2 = args.VERBOSE2
     additional_path_formats = args.ADDITIONAL_PATH_FORMATS
     if args.BASE_PATH == None:
         base_path = args.EXPORT_PATH
@@ -89,20 +96,24 @@ def main():
     library_dat_path = args.LIB_PATH + 'library.dat'
     webdb_dat_path = args.LIB_PATH + 'webdb.dat'
 
-    if not os.path.exists(webdb_dat_path):
-        print(webdb_dat_path + " doesn't exist. Type -h for help.")
-        return
-
-    if not os.path.exists(export_path):
-        print(export_path + " doesn't exist. Type -h for help.")
-        return
+    
 
     # process
     # logger
-    if verbose:
+    if verbose2:
         logging.getLogger().setLevel(logging.DEBUG)
-    else:
+    elif verbose:
         logging.getLogger().setLevel(logging.INFO)
+    else:
+        logging.getLogger().setLevel(logging.WARNING)
+
+    if not os.path.exists(webdb_dat_path):
+        logging.error("webdb_dat_path not found: %s", webdb_dat_path)
+        return
+
+    if not os.path.exists(export_path):
+        logging.error("export_path not found: %s", export_path)
+        return
 
     # get all playlists
     playlistsd = get_playlistsd(webdb_dat_path)

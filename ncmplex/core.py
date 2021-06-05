@@ -82,27 +82,7 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_
     """
     track_infod = {}
 
-    # first get track, note these information may be incorrect due to duplication and out of date
-    # con = sqlite3.connect(library_dat_path)
-    # cur = con.cursor()
-    # library_dat_track = cur.execute(
-    #     'SELECT file, tid, title, artist, duration \
-    #      FROM track'
-    # )
-    # for file, tid, title, artist, duration in library_dat_track:
-    #     if file == '' or tid == '':
-    #         continue
-    #     else:
-    #         tid = int(tid)
-    #         track_infod[tid] = {}
-    #         track_infod[tid]['path'] = file
-    #         track_infod[tid]['track_name'] = title
-    #         if len(artist.split(",")) > 1:
-    #             track_infod[tid]['artists_name'] = artist.split(",")[1]
-    #         track_infod[tid]['duration'] = str(round(duration/1000))
-    # con.close();
-
-    # then get web_offline_track
+    # get web_offline_track
     con = sqlite3.connect(webdb_dat_path)
     cur = con.cursor()
     
@@ -110,15 +90,37 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_
         'SELECT track_id, detail, track_name, artist_name, relative_path \
          FROM web_offline_track'
     )
+    web_offline_track_info_by_tid = {}
     for tid, detail, track_name, artists_name, relative_path in web_offline_track:
-        if relative_path == '':
+        album_name = json.loads(detail)["album"]["name"]
+        track_infod[tid] = {}
+        track_infod[tid]['path'] = download_path + relative_path
+        track_infod[tid]['track_name'] = track_name
+        track_infod[tid]['artists_name'] = artists_name
+        track_infod[tid]['duration'] = str(round(json.loads(detail)['duration']/1000))
+        track_infod[tid]['album_name'] = album_name
+
+    # then get track, note these information may be incorrect due to duplication and out of date
+    con = sqlite3.connect(library_dat_path)
+    cur = con.cursor()
+    library_dat_track = cur.execute(
+        'SELECT file, tid, title, album, artist, duration \
+         FROM track'
+    )
+    for file, tid, title, album, artist, duration in library_dat_track:
+        if file == '' or tid == '':
             continue
         else:
+            tid = int(tid)
             track_infod[tid] = {}
-            track_infod[tid]['path'] = download_path + relative_path
-            track_infod[tid]['track_name'] = track_name
-            track_infod[tid]['artists_name'] = artists_name
-            track_infod[tid]['duration'] = str(round(json.loads(detail)['duration']/1000))
+            track_infod[tid]['track_name'] = title
+            track_infod[tid]['album_name'] = album
+            if len(artist.split(",")) > 1:
+                track_infod[tid]['artists_name'] = artist.split(",")[1]
+            track_infod[tid]['duration'] = str(round(duration/1000))
+            if not 'path' in track_infod[tid]:
+                track_infod[tid]['path'] = file
+    con.close();
 
     # then get web_cloud_track
     # web_cloud_track = cur.execute(
@@ -156,19 +158,22 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_
                 artist_num = len(db_trackd["artists"])
                 artists_path = ','.join([db_trackd["artists"][i]["name"] for i in range(artist_num)])
                 artists = '/'.join([db_trackd["artists"][i]["name"] for i in range(artist_num)])
-                album = db_trackd["album"]["name"]
+                album_name = db_trackd["album"]["name"]
                 # the same rules have to be applied when organizing music
                 for additional_path_format in additional_path_formats:
                     # if not found yet
                     if tid not in track_infod:
-                        path = additional_path_format.replace("{{title}}", make_string_windows_compatible(title)).replace("{{album}}", make_string_windows_compatible(album)).replace("{{artists}}", make_artist_windows_compatible(artists_path))
+                        track_infod[tid] = {}
+                        track_infod[tid]['track_name'] = title
+                        track_infod[tid]['artists_name'] = artists
+                        track_infod[tid]['duration'] = str(round(db_trackd["duration"]/1000))
+                        track_infod[tid]['album_name'] = album_name
+                    if 'path' not in track_infod[tid]:
+                        path = additional_path_format.replace("{{title}}", make_string_windows_compatible(title)).replace("{{album}}", make_string_windows_compatible(album_name)).replace("{{artists}}", make_artist_windows_compatible(artists_path))
+                        logging.info("checking additional track: %s", path)
                         if os.path.isfile(path):
-                            track_infod[tid] = {}
                             track_infod[tid]['path'] = path
                             logging.info("additional track found: %s", path)
-                            track_infod[tid]['track_name'] = title
-                            track_infod[tid]['artists_name'] = artists
-                            track_infod[tid]['duration'] = str(round(db_trackd["duration"]/1000))
 
     return track_infod
 
@@ -183,7 +188,8 @@ def get_correct_case_track_infod(track_infod):
         return r and r[0] or path
 
     for tid in track_infod.keys():
-        track_infod[tid]['path'] = get_correct_case_path(track_infod[tid]['path'])
+        if 'path' in track_infod[tid]:
+            track_infod[tid]['path'] = get_correct_case_path(track_infod[tid]['path'])
     return(track_infod)
     
 def get_pids_of_playlist_names(playlist_names, playlistsd):
@@ -230,9 +236,21 @@ def get_m3u8d(pids, playlistsd, track_infod):
         for tid in tids:
             if tid in track_infod.keys():
                 m3u8d[pid]['tracks'][tid] = {}
-                path = track_infod[tid]['path']
-                if path != None:
+                if 'path' in track_infod[tid]:
                     m3u8d[pid]['tracks'][tid] = track_infod[tid]
+                else:
+                    artists_name = 'NULL'
+                    album_name = 'NULL'
+                    track_name = 'NULL'
+                    if artists_name in track_infod[tid]:
+                        artists_name = track_infod[tid]['artists_name']
+                    if album_name in track_infod[tid]:
+                        album_name = track_infod[tid]['album_name']
+                    if track_name in track_infod[tid]:
+                        track_name = track_infod[tid]['track_name']
+                    logging.warning("track not found: %s", artists_name + ' - ' + album_name + ' - ' + track_name)
+            else:
+                logging.warning("tid not found: %s", tid)
     return m3u8d
 
 def export(m3u8d, export_path):
@@ -246,11 +264,19 @@ def export(m3u8d, export_path):
         with open(file_path, 'w', encoding='utf-8', errors='ignore') as m3u8_file:
             m3u8_file_content = '#EXTM3U\n'
             for tid in m3u8d[pid]['tracks']:
-                m3u8_file_content = m3u8_file_content + '#EXTINF:' + \
-                                    m3u8d[pid]['tracks'][tid]['duration'] + ', ' + \
-                                    m3u8d[pid]['tracks'][tid]['artists_name'] + ' - ' + \
-                                    m3u8d[pid]['tracks'][tid]['track_name'] + '\n' + \
-                                    m3u8d[pid]['tracks'][tid]['path'] + '\n'
+                if 'path' in m3u8d[pid]['tracks'][tid]:
+                    artists_name = 'NULL'
+                    album_name = 'NULL'
+                    track_name = 'NULL'
+                    if artists_name in m3u8d[pid]['tracks'][tid]:
+                        artists_name = m3u8d[pid]['tracks'][tid]['artists_name']
+                    if album_name in m3u8d[pid]['tracks'][tid]:
+                        album_name = m3u8d[pid]['tracks'][tid]['album_name']
+                    m3u8_file_content = m3u8_file_content + '#EXTINF:' + \
+                                        m3u8d[pid]['tracks'][tid]['duration'] + ', ' + \
+                                        artists_name + ' - ' + \
+                                        album_name + '\n' + \
+                                        m3u8d[pid]['tracks'][tid]['path'] + '\n'
             m3u8_file.write(m3u8_file_content)
     logging.info("Files saved at %s", export_path)
 
@@ -269,7 +295,8 @@ def get_relative_path(m3u8d, base_path):
     for pid in m3u8d:
         for tid in m3u8d[pid]['tracks']:
             # remove base path
-            m3u8d[pid]['tracks'][tid]['path'] = replace_ignore_case(base_path, "", m3u8d[pid]['tracks'][tid]['path'])
-            # nt to posix path
-            m3u8d[pid]['tracks'][tid]['path'] = m3u8d[pid]['tracks'][tid]['path'].replace("\\", "/")
+            if 'path' in m3u8d[pid]['tracks'][tid]:
+                m3u8d[pid]['tracks'][tid]['path'] = replace_ignore_case(base_path, "", m3u8d[pid]['tracks'][tid]['path'])
+                # nt to posix path
+                m3u8d[pid]['tracks'][tid]['path'] = m3u8d[pid]['tracks'][tid]['path'].replace("\\", "/")
     return m3u8d
