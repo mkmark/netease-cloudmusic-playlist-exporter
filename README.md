@@ -46,7 +46,7 @@ Note:
 - `-d DOWNLOAD_PATH` is required because `web_offline_track` stored in `webdb.dat` is stored with `relative_path` only, and there is no extra information in the database to determine the base path. If not provided, `%USERPROFILE%\Music\CloudMusic\` is used.
 - `-r` option is useful to export music to posix system like Mac, Linux, Android and so.
 - `-c` option is useful to export music to be used in case-sensitive operation system like Linux and so. Path stored in the database may be in the incorrect case, which is not a problem in Windows or Mac. With `-c` enabled, the app will verify the file name on the disk, thus dramatically increase the processing time.
-- `-f` option is useful to export music that is not included in ncm database, but exists on disk, in format that can be specified by {{title}}, {{album}}, {{artists}}. Use first entry found. 
+- `-f` option is useful to export music that is not included in ncm database, but exists on disk, in format that can be specified by `{{title}}`, `{{album}}`, `{{artists}}`. Use first entry found. 
 
 ## Example
 
