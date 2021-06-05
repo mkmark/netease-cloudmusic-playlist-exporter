@@ -198,6 +198,7 @@ def get_pids_of_playlist_names(playlist_names, playlistsd):
         for pid in playlistsd:
             if (playlistsd[pid]['track_count'] != 0):
                 pids.append(pid)
+        return pids
 
     def get_non_empty_pid_of_playlist_name(playlist_name, playlistsd):
         for pid in playlistsd:
