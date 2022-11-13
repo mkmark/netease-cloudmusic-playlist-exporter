@@ -7,16 +7,18 @@ import logging
 import os
 
 def make_string_windows_compatible(_str):
-        _str = re.sub(r'[\/]', '／', _str)
-        _str = re.sub(r'[\\]', '＼', _str)
-        _str = re.sub(r'[\"]', '＂', _str)
-        _str = re.sub(r'[\:]', '：', _str)
-        _str = re.sub(r'[\*]', '＊', _str)
-        _str = re.sub(r'[\?]', '？', _str)
-        _str = re.sub(r'[\<]', '《', _str)
-        _str = re.sub(r'[\>]', '》', _str)
-        _str = re.sub(r'[\|]', '｜', _str)
-        return _str
+    _str = re.sub(r'[\/]', '／', _str)
+    _str = re.sub(r'[\\]', '＼', _str)
+    _str = re.sub(r'[\"]', '＂', _str)
+    _str = re.sub(r'[\:]', '：', _str)
+    _str = re.sub(r'[\*]', '＊', _str)
+    _str = re.sub(r'[\?]', '？', _str)
+    _str = re.sub(r'[\<]', '《', _str)
+    _str = re.sub(r'[\>]', '》', _str)
+    _str = re.sub(r'[\|]', '｜', _str)
+    _str = _str.lstrip(' ')
+    _str = _str.rstrip(' .')
+    return _str
 
 def make_artist_windows_compatible(_str):
     _str = re.sub(r'[\/]', ',', _str)
@@ -28,6 +30,8 @@ def make_artist_windows_compatible(_str):
     _str = re.sub(r'[\<]', '《', _str)
     _str = re.sub(r'[\>]', '》', _str)
     _str = re.sub(r'[\|]', '｜', _str)
+    _str = _str.lstrip(' ')
+    _str = _str.rstrip(' .')
     return _str
 
 def get_playlistsd(webdb_dat_path):
@@ -69,7 +73,7 @@ def get_playlistsd(webdb_dat_path):
     con.close();   
     return playlistsd
         
-def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_path_formats):
+def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_path_only, additional_path_formats):
     logging.debug("get_track_infod %s, %s, %s", webdb_dat_path, library_dat_path, download_path)
     """
     Returns 
@@ -93,7 +97,8 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_
     for tid, detail, track_name, artists_name, relative_path in web_offline_track:
         album_name = json.loads(detail)["album"]["name"]
         track_infod[tid] = {}
-        track_infod[tid]['path'] = download_path + relative_path
+        if not additional_path_only:
+            track_infod[tid]['path'] = download_path + relative_path
         track_infod[tid]['track_name'] = track_name
         track_infod[tid]['artists_name'] = artists_name
         track_infod[tid]['duration'] = str(round(json.loads(detail)['duration']/1000))
@@ -117,7 +122,7 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_
             if len(artist.split(",")) > 1:
                 track_infod[tid]['artists_name'] = artist.split(",")[1]
             track_infod[tid]['duration'] = str(round(duration/1000))
-            if not 'path' in track_infod[tid]:
+            if (not 'path' in track_infod[tid]) and (not additional_path_only):
                 track_infod[tid]['path'] = file
     con.close();
 
@@ -141,6 +146,14 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_
     # if force_format is specified, take a guess for tid not in the track_infod
     con = sqlite3.connect(webdb_dat_path)
     cur = con.cursor()
+
+    # additional_path_roots = []
+    # for additional_path_format in additional_path_formats:
+    #     additional_path_roots += additional_path_format.split('{{')[0]
+
+    # cached_paths = []
+    # cached_paths = get_cached_paths(additional_path_roots)
+
     if additional_path_formats != []:
         web_track = cur.execute(
             'SELECT tid, track \
@@ -171,10 +184,25 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_
                         path = additional_path_format.replace("{{title}}", make_string_windows_compatible(title)).replace("{{album}}", make_string_windows_compatible(album_name)).replace("{{artists}}", make_artist_windows_compatible(artists_path))
                         logging.info("checking additional track: %s", path)
                         if os.path.isfile(path):
+#                         if is_file_exists_in_dirs(path, cached_paths):
                             track_infod[tid]['path'] = path
                             logging.info("additional track found: %s", path)
 
     return track_infod
+
+# def get_cached_paths(root_dirs):
+#     cached_paths = []
+#     for root_dir in root_dirs:
+#         for filename in glob.iglob(root_dir + '**/**', recursive=True):
+#             cached_paths += [filename]
+#     return cached_paths
+
+# def is_file_exists_in_dirs(path, cached_paths):
+#     if path in cached_paths:
+#         return True
+#     if os.path.isfile(path):
+#         return True
+#     return False
 
 def get_correct_case_track_infod(track_infod):
     logging.debug("get_correct_case_track_infod %s", track_infod)
@@ -249,6 +277,9 @@ def get_m3u8d(pids, playlistsd, track_infod):
                     if 'track_name' in track_infod[tid]:
                         track_name = track_infod[tid]['track_name']
                     logging.warning("track not found: %s", artists_name + ' - ' + album_name + ' - ' + track_name)
+                    logging.info(bytes(artists_name, 'utf-8'))
+                    logging.info(bytes(album_name, 'utf-8'))
+                    logging.info(bytes(track_name, 'utf-8'))
             else:
                 logging.warning("tid not found: %s", tid)
     return m3u8d

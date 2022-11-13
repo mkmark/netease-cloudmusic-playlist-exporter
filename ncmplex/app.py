@@ -60,6 +60,12 @@ parser.add_argument("-c", default = False, \
                           action='store_const', \
                           const = True, \
                           required = False)
+parser.add_argument("-F", default = False, \
+                          dest = "ADDITIONAL_PATH_ONLY", \
+                          help = "ignore path infomation in ncm database", \
+                          action='store_const', \
+                          const = True, \
+                          required = False)
 parser.add_argument("-f", default = [], \
                           dest = "ADDITIONAL_PATH_FORMATS", \
                           help = "try to export tracks that are not found in ncm database, can be specified multiple times. (default: [])", \
@@ -87,6 +93,7 @@ def main():
     fix_case = args.FIX_CASE
     verbose = args.VERBOSE
     verbose2 = args.VERBOSE2
+    additional_path_only = args.ADDITIONAL_PATH_ONLY
     additional_path_formats = args.ADDITIONAL_PATH_FORMATS
     if args.BASE_PATH == None:
         base_path = args.EXPORT_PATH
@@ -118,7 +125,7 @@ def main():
     # get all playlists
     playlistsd = get_playlistsd(webdb_dat_path)
     # get all tracks
-    track_infod = get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_path_formats)
+    track_infod = get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_path_only, additional_path_formats)
     # fix case
     if fix_case: 
         track_infod = get_correct_case_track_infod(track_infod)
