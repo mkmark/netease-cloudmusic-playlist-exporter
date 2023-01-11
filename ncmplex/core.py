@@ -54,6 +54,8 @@ def get_playlistsd(webdb_dat_path):
          FROM web_playlist')
     for pid, playlist_info in web_playlist:
         playlist_infod = json.loads(playlist_info)
+        if playlist_infod["anonimous"]:
+            continue
         playlist_name = playlist_infod['name']
         track_count = playlist_infod['trackCount']
         playlistsd[pid] = {
@@ -89,7 +91,6 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_
     # get web_offline_track
     con = sqlite3.connect(webdb_dat_path)
     cur = con.cursor()
-    
     web_offline_track = cur.execute(
         'SELECT track_id, detail, track_name, artist_name, relative_path \
          FROM web_offline_track'
@@ -127,21 +128,23 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_
     con.close();
 
     # then get web_cloud_track
-    # web_cloud_track = cur.execute(
-    #     'SELECT id, name, artist, track, file \
-    #      FROM web_cloud_track'
-    # )
-    # for tid, name, artist, track, file in web_cloud_track:
-    #     if file == '':
-    #         continue
-    #     else:
-    #         track_infod[tid] = {}
-    #         track_infod[tid]['path'] = file
-    #         track_infod[tid]['track_name'] = name
-    #         if len(artist.split(",")) > 1:
-    #             track_infod[tid]['artists_name'] = artist.split(",")[1]
-    #         track_infod[tid]['duration'] = str(round(json.loads(track)['duration']/1000))
-    # con.close();
+    con = sqlite3.connect(webdb_dat_path)
+    cur = con.cursor()
+    web_cloud_track = cur.execute(
+        'SELECT id, name, artist, track, file \
+         FROM web_cloud_track'
+    )
+    for tid, name, artist, track, file in web_cloud_track:
+        if file == '':
+            continue
+        else:
+            track_infod[tid] = {}
+            track_infod[tid]['path'] = file
+            track_infod[tid]['track_name'] = name
+            if len(artist.split(",")) > 1:
+                track_infod[tid]['artists_name'] = artist.split(",")[1]
+            track_infod[tid]['duration'] = str(round(json.loads(track)['duration']/1000))
+    con.close();
 
     # if force_format is specified, take a guess for tid not in the track_infod
     con = sqlite3.connect(webdb_dat_path)

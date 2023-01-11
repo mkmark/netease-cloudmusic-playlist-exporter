@@ -4,7 +4,7 @@ import subprocess
 import argparse
 import logging
 
-if __package__ is None:
+if __package__ is None or __package__ == '':
     from core import *
 else:
     from .core import *

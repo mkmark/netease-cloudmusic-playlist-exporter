@@ -13,9 +13,18 @@ command line tool to export netease cloudmusic playlists to standard .m3u8
 
 ## Install
 
-```bash
+```bat
 pip install git+https://github.com/mkmark/netease-cloudmusic-playlist-exporter.git
 ```
+
+or clone then
+
+```bat
+py -m ensurepip --upgrade
+python setup.py install
+```
+
+see https://pip.pypa.io/en/stable/installation/
 
 ## Usage
 
