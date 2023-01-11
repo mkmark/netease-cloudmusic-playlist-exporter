@@ -138,6 +138,7 @@ def get_track_infod(webdb_dat_path, library_dat_path, download_path, additional_
         if file == '':
             continue
         else:
+            tid = int(tid)
             track_infod[tid] = {}
             track_infod[tid]['path'] = file
             track_infod[tid]['track_name'] = name
