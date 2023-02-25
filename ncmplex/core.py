@@ -260,8 +260,9 @@ def get_m3u8d(pids, playlistsd, track_infod):
     """
     m3u8d = {}
     for pid in pids:
+        playlist_name = playlistsd[pid]['playlist_name']
         m3u8d[pid] = {
-            'playlist_name': playlistsd[pid]['playlist_name'],
+            'playlist_name': playlist_name,
             'tracks': {}
         }
         tids = playlistsd[pid]["tids"]
@@ -280,7 +281,7 @@ def get_m3u8d(pids, playlistsd, track_infod):
                         album_name = track_infod[tid]['album_name']
                     if 'track_name' in track_infod[tid]:
                         track_name = track_infod[tid]['track_name']
-                    logging.warning("track not found: %s", artists_name + ' - ' + album_name + ' - ' + track_name)
+                    logging.warning(playlist_name + ": track not found: %s", artists_name + ' - ' + album_name + ' - ' + track_name)
                     logging.info(bytes(artists_name, 'utf-8'))
                     logging.info(bytes(album_name, 'utf-8'))
                     logging.info(bytes(track_name, 'utf-8'))
